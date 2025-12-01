@@ -1,0 +1,25 @@
+{
+  "short_name": "Emerald",
+  "name": "Emerald Finance",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/9.x/shapes/svg?seed=Emerald&backgroundColor=10b981",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    },
+    {
+      "src": "https://api.dicebear.com/9.x/shapes/png?seed=Emerald&backgroundColor=10b981",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://api.dicebear.com/9.x/shapes/png?seed=Emerald&backgroundColor=10b981",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#10b981",
+  "background_color": "#ecfdf5"
+}
