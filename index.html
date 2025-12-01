@@ -9,8 +9,17 @@
     <title>Emerald Finance</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="https://api.dicebear.com/9.x/shapes/png?seed=Emerald&backgroundColor=10b981">
+    
+    <!-- Tailwind via CDN for simplicity (in a real production app, use PostCSS) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Polyfill for 'process' to prevent crashes in libraries that expect Node.js env -->
+    <script>
+      window.process = { env: { NODE_ENV: 'production' } };
+    </script>
+
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -53,20 +62,19 @@
         padding-top: max(env(safe-area-inset-top), 1rem);
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
+    "vite": "https://aistudiocdn.com/vite@^7.2.6",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react-window": "https://aistudiocdn.com/react-window@^1.8.10",
-    "zod": "https://aistudiocdn.com/zod@^3.22.4",
-    "jspdf": "https://aistudiocdn.com/jspdf@^2.5.1",
-    "vite": "https://aistudiocdn.com/vite@^7.2.6",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
+    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.4",
+    "zod": "https://aistudiocdn.com/zod@^4.1.13",
+    "react-window": "https://aistudiocdn.com/react-window@^2.2.3"
   }
 }
 </script>

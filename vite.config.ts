@@ -4,20 +4,22 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, (process as any).cwd(), '');
 
   return {
     plugins: [react()],
+    // Use a relative base path to ensure assets load correctly if not at domain root
+    base: './', 
     define: {
       // This ensures 'process.env.API_KEY' works in the browser code
-      // without crashing due to 'process' being undefined.
-      'process.env.API_KEY': JSON.stringify(env.API_KEY || process.env.API_KEY),
-      // Prevent other random process access from crashing
-      'process.env': {}
+      // We default to '' if undefined to prevent "undefined" string injection
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
+      // define 'process.env' as an object to prevent crashes in third-party libs
+      'process.env': JSON.stringify({}),
     },
     build: {
-      target: 'esnext'
+      target: 'esnext',
+      outDir: 'dist',
     }
   }
 })
