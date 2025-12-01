@@ -19,8 +19,8 @@ import { TutorialModal } from './components/modals/TutorialModal';
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
 import { BudgetSelector } from './components/onboarding/BudgetSelector';
 import { AppLock } from './components/security/AppLock';
-import { useFinance } from './contexts/FinanceContext';
-import { useTheme } from './contexts/ThemeContext';
+import { useFinance } from '../../contexts/FinanceContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useHashLocation } from './utils/router';
 import { triggerHaptic } from './utils';
 
