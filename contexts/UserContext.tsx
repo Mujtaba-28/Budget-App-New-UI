@@ -139,8 +139,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const resetData = async () => {
         localStorage.clear();
         await clearAllStores();
-        // Force reload to clear all React state and ensure clean onboarding
-        window.location.reload();
+        
+        // Reset State - "Soft Reset" without page reload
+        setIsOnboarded(false);
+        setUserName('User');
+        setCustomContexts([]);
+        setLastBackupDate(null);
+        setLastCloudSync(null);
+        // Note: activeContext will likely reset naturally as OnboardingWizard takes over
     };
 
     return (

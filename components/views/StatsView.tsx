@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import * as Lucide from 'lucide-react';
 const { ChevronLeft, ChevronRight, AlertTriangle, ThumbsUp, Settings2, Eye, EyeOff, ArrowUp, ArrowDown, Loader2, ArrowUpRight } = Lucide;
 import { DashboardCard } from '../../types';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../constants';
-import { formatMoney } from '../../utils';
+import { formatMoney, triggerHaptic } from '../../utils';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { createAnalyticsWorker } from '../../utils/worker';
@@ -16,15 +16,17 @@ interface StatsViewProps {
 }
 
 // Memoized Chart Component
-const SpendingChart = memo(({ data, width, height, isPrivacyMode, viewType, currentBudget }: any) => {
+const SpendingChart = memo(({ data, width, height, isPrivacyMode, viewType, currentBudget, currency }: any) => {
     const PADDING_TOP = 20;
     const PADDING_BOTTOM = 30; 
-    const PADDING_LEFT = 40;   
-    const PADDING_RIGHT = 15;
+    const PADDING_LEFT = 10;   
+    const PADDING_RIGHT = 10;
     const GRAPH_WIDTH = width - PADDING_LEFT - PADDING_RIGHT;
     const GRAPH_HEIGHT = height - PADDING_TOP - PADDING_BOTTOM;
 
     const { cumulativeSpending, predictedTotal, isOverBudget, daysInMonth } = data;
+    const [activeIndex, setActiveIndex] = useState<number | null>(null);
+    const svgRef = useRef<SVGSVGElement>(null);
 
     let maxY = Math.max(predictedTotal, 10000); 
     if (viewType === 'expense') maxY = Math.max(maxY, currentBudget);
@@ -59,40 +61,107 @@ const SpendingChart = memo(({ data, width, height, isPrivacyMode, viewType, curr
     const hasPoints = cumulativeSpending.length > 0;
     const isSinglePoint = cumulativeSpending.length === 1;
 
+    // Interaction Logic
+    const handleTouch = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+        if (!svgRef.current || !hasPoints) return;
+        const rect = svgRef.current.getBoundingClientRect();
+        let clientX;
+        if ('touches' in e) {
+            clientX = e.touches[0].clientX;
+        } else {
+            clientX = (e as React.MouseEvent).clientX;
+        }
+        
+        const relativeX = clientX - rect.left - PADDING_LEFT;
+        const rawIndex = Math.round(relativeX / scaleX);
+        const index = Math.max(0, Math.min(cumulativeSpending.length - 1, rawIndex));
+        
+        if (index !== activeIndex) {
+            triggerHaptic(5);
+            setActiveIndex(index);
+        }
+    }, [activeIndex, hasPoints, cumulativeSpending.length, scaleX]);
+
+    const handleLeave = () => setActiveIndex(null);
+
     return (
-        <svg className="w-full h-full overflow-visible" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-            <defs>
-                <linearGradient id="gradientGreen" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
-                </linearGradient>
-                <linearGradient id="gradientRed" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.2"/>
-                    <stop offset="100%" stopColor="#f43f5e" stopOpacity="0"/>
-                </linearGradient>
-            </defs>
-            {yTicks.map((val, i) => {
-                const y = getY(val);
-                if (isNaN(y)) return null;
-                return (
-                    <g key={`y-${i}`}>
-                        <line x1={PADDING_LEFT} y1={y} x2={width - PADDING_RIGHT} y2={y} stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4 4" className="dark:stroke-slate-800"/>
-                        <text x={PADDING_LEFT - 8} y={y + 3} fontSize="10" fill="#94a3b8" fontWeight="600" textAnchor="end" className="select-none">{formatYLabel(val)}</text>
+        <div className="relative w-full h-full touch-none">
+            <svg 
+                ref={svgRef}
+                className="w-full h-full overflow-visible cursor-crosshair" 
+                viewBox={`0 0 ${width} ${height}`} 
+                preserveAspectRatio="none"
+                onMouseMove={handleTouch}
+                onTouchMove={handleTouch}
+                onMouseLeave={handleLeave}
+                onTouchEnd={handleLeave}
+            >
+                <defs>
+                    <linearGradient id="gradientGreen" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
+                        <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
+                    </linearGradient>
+                    <linearGradient id="gradientRed" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.2"/>
+                        <stop offset="100%" stopColor="#f43f5e" stopOpacity="0"/>
+                    </linearGradient>
+                </defs>
+                
+                {/* Grid Lines */}
+                {yTicks.map((val, i) => {
+                    const y = getY(val);
+                    if (isNaN(y)) return null;
+                    return (
+                        <g key={`y-${i}`}>
+                            <line x1={PADDING_LEFT} y1={y} x2={width - PADDING_RIGHT} y2={y} stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4 4" className="dark:stroke-slate-800"/>
+                        </g>
+                    );
+                })}
+                {viewType === 'expense' && (<line x1={PADDING_LEFT} y1={limitY} x2={width - PADDING_RIGHT} y2={limitY} stroke="#94a3b8" strokeWidth="1" strokeDasharray="2 2" />)}
+                
+                {hasPoints && <path d={areaPath} fill={chartTheme.fill} />}
+                {hasPoints && <polyline points={polylinePoints} fill="none" stroke={chartTheme.stroke} strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke"/>}
+                
+                {isSinglePoint && (
+                    <>
+                        <circle cx={getX(0)} cy={getY(cumulativeSpending[0])} r="4" fill={chartTheme.point} />
+                        <circle cx={getX(0)} cy={getY(cumulativeSpending[0])} r="8" fill={chartTheme.point} opacity="0.3" className="animate-ping"/>
+                    </>
+                )}
+
+                {/* Interaction Overlay */}
+                {activeIndex !== null && activeIndex < cumulativeSpending.length && (
+                    <g>
+                        <line 
+                            x1={getX(activeIndex)} y1={PADDING_TOP} 
+                            x2={getX(activeIndex)} y2={height - PADDING_BOTTOM} 
+                            stroke="#94a3b8" strokeWidth="1" strokeDasharray="3 3"
+                        />
+                        <circle 
+                            cx={getX(activeIndex)} 
+                            cy={getY(cumulativeSpending[activeIndex])} 
+                            r="6" fill="white" stroke={chartTheme.point} strokeWidth="3" 
+                        />
                     </g>
-                );
-            })}
-            {viewType === 'expense' && (<line x1={PADDING_LEFT} y1={limitY} x2={width - PADDING_RIGHT} y2={limitY} stroke="#94a3b8" strokeWidth="1" strokeDasharray="2 2" />)}
+                )}
+            </svg>
             
-            {hasPoints && <path d={areaPath} fill={chartTheme.fill} />}
-            {hasPoints && <polyline points={polylinePoints} fill="none" stroke={chartTheme.stroke} strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke"/>}
-            
-            {isSinglePoint && (
-                <>
-                    <circle cx={getX(0)} cy={getY(cumulativeSpending[0])} r="4" fill={chartTheme.point} />
-                    <circle cx={getX(0)} cy={getY(cumulativeSpending[0])} r="8" fill={chartTheme.point} opacity="0.3" className="animate-ping"/>
-                </>
+            {/* Floating Tooltip HTML Overlay */}
+            {activeIndex !== null && activeIndex < cumulativeSpending.length && (
+                 <div 
+                    className="absolute top-0 pointer-events-none flex flex-col items-center z-20"
+                    style={{ 
+                        left: getX(activeIndex), 
+                        transform: `translateX(-50%) translateY(-100%)`,
+                        top: Math.max(getY(cumulativeSpending[activeIndex]) - 15, 0)
+                    }}
+                 >
+                    <div className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-3 py-1.5 rounded-xl shadow-xl text-xs font-bold mb-2 whitespace-nowrap">
+                        {isPrivacyMode ? '****' : formatMoney(cumulativeSpending[activeIndex], currency, false)}
+                    </div>
+                 </div>
             )}
-        </svg>
+        </div>
     );
 });
 
@@ -279,7 +348,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ isPrivacyMode, currentDate
         } else if (card.id === 'trend') {
             return (
                 <CardBase key={card.id} title={`${viewType === 'expense' ? 'Spending' : 'Income'} Trend`}>
-                    <div className="h-48 relative w-full overflow-hidden">
+                    <div className="h-48 relative w-full overflow-visible touch-pan-x">
                         <SpendingChart 
                             data={stats} 
                             width={350} 
@@ -287,6 +356,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ isPrivacyMode, currentDate
                             isPrivacyMode={isPrivacyMode} 
                             viewType={viewType}
                             currentBudget={currentBudget}
+                            currency={currency}
                         />
                     </div>
                 </CardBase>

@@ -76,6 +76,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ onClose, onS
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 sm:p-6">
             <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 max-h-[90vh] flex flex-col relative overflow-hidden">
                 
+                {/* Drag Handle */}
+                <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-6 shrink-0"></div>
+
                 <ConfirmationModal 
                     isOpen={showDeleteConfirm}
                     title="Delete Transaction?"

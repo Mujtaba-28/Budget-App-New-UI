@@ -201,13 +201,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
             </div>
 
-            {/* QUICK ACTION ROW - Replaces buttons inside card */}
-            <div className="flex gap-3 px-1 overflow-x-auto scrollbar-hide py-2">
-                <button onClick={() => onEditTx({} as any)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm text-xs font-bold active:scale-95 transition-transform whitespace-nowrap">
-                    <Plus size={16}/> New Transaction
+            {/* QUICK ACTION ROW - Polished */}
+            <div className="grid grid-cols-2 gap-3 mx-1">
+                <button 
+                    onClick={() => onEditTx({} as any)} 
+                    className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm active:scale-[0.98] transition-transform hover:border-emerald-200 dark:hover:border-emerald-900"
+                >
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                        <Plus size={18} strokeWidth={2.5}/>
+                    </div>
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">New Entry</span>
                 </button>
-                <button onClick={() => onGoToStats()} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-white shadow-sm text-xs font-bold active:scale-95 transition-transform whitespace-nowrap">
-                    <PieChart size={16}/> Analytics
+                <button 
+                    onClick={() => onGoToStats()} 
+                    className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm active:scale-[0.98] transition-transform hover:border-indigo-200 dark:hover:border-indigo-900"
+                >
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                        <PieChart size={18} strokeWidth={2.5}/>
+                    </div>
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">Analytics</span>
                 </button>
             </div>
 
